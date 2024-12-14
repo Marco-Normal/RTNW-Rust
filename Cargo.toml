@@ -1,0 +1,16 @@
+[package]
+name = "raytracing"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+criterion = "0.5.1"
+image = "0.25.5"
+indicatif = "0.17.9"
+rand = "0.8.5"
+rayon = "1.10.0"
+
+
+[[bench]]
+name = "my_benchmark"
+harness = false
