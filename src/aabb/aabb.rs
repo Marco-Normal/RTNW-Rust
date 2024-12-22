@@ -64,10 +64,10 @@ impl AABB {
     }
     pub fn axis_interval(&self, axis: usize) -> Result<Interval, AABBErrorKind> {
         match axis {
-            0 => return Ok(self.x),
-            1 => return Ok(self.y),
+            0 => Ok(self.x),
+            1 => Ok(self.y),
             2 => {
-                return Ok(self.z);
+                Ok(self.z)
             }
             _ => Err(AABBErrorKind::WrongAxis(axis)),
         }

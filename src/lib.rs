@@ -5,6 +5,7 @@ pub mod cmd;
 pub mod color;
 pub mod common;
 pub mod hittable;
+pub mod image;
 pub mod interval;
 pub mod material;
 pub mod rays;

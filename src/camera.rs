@@ -3,7 +3,7 @@ use crate::color::write_to_png;
 use super::{
     color::Color,
     common::{degree_to_radians, random_double, INFINITY},
-    hittable::{Hittable, HittableList},
+    hittable::Hittable,
     interval::Interval,
     rays::Ray,
     vec3::{random_on_disk, Point3, Vec3},

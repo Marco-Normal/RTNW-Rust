@@ -24,7 +24,7 @@ impl BVH {
             &'a Box<(dyn Hittable + 'static)>,
             &'b Box<(dyn Hittable + 'static)>,
         ) -> std::cmp::Ordering
-               + use<'_> {
+               + '_ {
             move |a, b| {
                 let a_bbox = a.bounding_box(time_interval);
                 let b_bbox = b.bounding_box(time_interval);
@@ -57,11 +57,11 @@ impl BVH {
             max - min
         }
         let mut axis_ranges: Vec<(usize, f64)> = (0..3)
-            .map(|a| (a, axis_range(&hittable, &time_interval, a)))
+            .map(|a| (a, axis_range(&hittable, time_interval, a)))
             .collect();
         axis_ranges.sort_unstable_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
         let axis = axis_ranges[0].0;
-        hittable.sort_unstable_by(box_compare(&time_interval, axis));
+        hittable.sort_unstable_by(box_compare(time_interval, axis));
         let len = hittable.len();
         match len {
             0 => {
@@ -70,25 +70,25 @@ impl BVH {
             1 => {
                 let leaf = hittable.pop().unwrap();
                 if let Some(bbox) = leaf.bounding_box(time_interval) {
-                    return BVH {
+                    BVH {
                         root: BVHNode::Leaf(leaf),
                         bbox,
-                    };
+                    }
                 } else {
                     panic!("No bounding box");
                 }
             }
             _ => {
-                let right = BVH::new(hittable.drain(len / 2..).collect(), &time_interval);
-                let left = BVH::new(hittable, &time_interval);
+                let right = BVH::new(hittable.drain(len / 2..).collect(), time_interval);
+                let left = BVH::new(hittable, time_interval);
                 let bbox = surrounding_box(&left.bbox, &right.bbox);
-                return BVH {
+                BVH {
                     root: BVHNode::Branch {
                         left: Box::new(left),
                         right: Box::new(right),
                     },
                     bbox,
-                };
+                }
             }
         }
     }
@@ -96,17 +96,17 @@ impl BVH {
 
 impl Hittable for BVH {
     fn hit(&self, ray: &Ray, time_interval: &Interval) -> Option<HitRecord> {
-        if self.bbox.hit(&ray, &time_interval) {
+        if self.bbox.hit(ray, time_interval) {
             match &self.root {
                 BVHNode::Branch { left, right } => {
-                    let left_bbox = left.hit(&ray, &time_interval);
+                    let left_bbox = left.hit(ray, time_interval);
                     let right_bbox = if left_bbox.is_some() {
                         right.hit(
-                            &ray,
+                            ray,
                             &Interval::new(time_interval.min(), left_bbox.as_ref().unwrap().t()),
                         )
                     } else {
-                        right.hit(&ray, &time_interval)
+                        right.hit(ray, time_interval)
                     };
                     match (left_bbox, right_bbox) {
                         (h, None) | (None, h) => h,
@@ -120,7 +120,7 @@ impl Hittable for BVH {
                     }
                 }
                 BVHNode::Leaf(leaf) => {
-                    return leaf.hit(&ray, &time_interval);
+                    leaf.hit(ray, time_interval)
                 }
             }
         } else {

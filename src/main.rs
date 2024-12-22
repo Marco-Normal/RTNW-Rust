@@ -1,3 +1,4 @@
+#![warn(clippy::pedantic)]
 use raytracing::{
     bvh::bvh::BVH,
     camera::Camera,
@@ -8,7 +9,7 @@ use raytracing::{
     interval::Interval,
     material::{self, Dielectric, Lambertian, Metal},
     sphere::Sphere,
-    textures::{CheckerPattern, ConstantTexture, Texture},
+    textures::{CheckerPattern, ConstantTexture},
     vec3::{Point3, Vec3},
 };
 use std::sync::Arc;
@@ -31,9 +32,9 @@ fn random_scene() -> Box<dyn Hittable> {
         for b in -11..11 {
             let choose_mat = random_double();
             let center = Point3::new(
-                a as f64 + 0.9 * random_double(),
+                f64::from(a) + 0.9 * random_double(),
                 0.2,
-                b as f64 + 0.9 * random_double(),
+                f64::from(b) + 0.9 * random_double(),
             );
             if (center - Point3::new(4.0, 0.2, 0.0)).magnitude() > 0.9 {
                 let material: Arc<dyn material::Material>;
@@ -115,13 +116,13 @@ fn checkered_spheres() -> Box<dyn Hittable> {
 
 fn main() {
     // World
-    let world = random_scene();
+    let world = checkered_spheres();
     let mut camera: Camera = Default::default();
     let filename = cmd_args().unwrap();
     camera.set_aspect_ratio(16. / 9.);
-    camera.set_width(1200);
-    camera.set_sample_per_pixel(250);
-    camera.set_max_depth(50);
+    camera.set_width(400);
+    camera.set_sample_per_pixel(15);
+    camera.set_max_depth(10);
     camera.set_vertical_fov(20.0);
     camera.set_lookfrom(Point3::new(13.0, 2.0, 3.0));
     camera.set_lookat(Point3::new(0.0, 0.0, 0.0));

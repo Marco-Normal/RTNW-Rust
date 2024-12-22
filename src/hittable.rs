@@ -113,12 +113,9 @@ impl Hittable for HittableList {
     }
     fn bounding_box(&self, time_interval: &Interval) -> Option<AABB> {
         match &self.objects.first() {
-            Some(first) => match first.bounding_box(&time_interval) {
+            Some(first) => match first.bounding_box(time_interval) {
                 Some(bbox) => self.objects.iter().skip(1).try_fold(bbox, |acc, hittable| {
-                    match hittable.bounding_box(&time_interval) {
-                        Some(bbox) => Some(surrounding_box(&acc, &&bbox)),
-                        _ => None,
-                    }
+                    hittable.bounding_box(time_interval).map(|bbox| surrounding_box(&acc, &bbox))
                 }),
                 _ => None,
             },
