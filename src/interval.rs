@@ -1,4 +1,5 @@
 use crate::common::INFINITY;
+use std::ops::{Add, AddAssign};
 pub const EMPTY: Interval = Interval {
     min: INFINITY,
     max: -INFINITY,
@@ -7,6 +8,7 @@ pub const UNIVERSE: Interval = Interval {
     min: -INFINITY,
     max: INFINITY,
 };
+pub const UNITY_INTERVAL: Interval = Interval { min: 0.0, max: 1.0 };
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd)]
 pub struct Interval {
     min: f64,
@@ -71,5 +73,22 @@ impl Interval {
             min: self.min - padding,
             max: self.max + padding,
         }
+    }
+}
+
+impl Add<f64> for Interval {
+    type Output = Interval;
+    fn add(self, rhs: f64) -> Self {
+        Interval {
+            min: self.min + rhs,
+            max: self.max + rhs,
+        }
+    }
+}
+
+impl AddAssign<f64> for Interval {
+    fn add_assign(&mut self, rhs: f64) {
+        self.min = rhs + self.min;
+        self.max = rhs + self.max;
     }
 }

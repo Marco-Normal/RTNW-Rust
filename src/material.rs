@@ -4,8 +4,8 @@ use crate::hittable::HitRecord;
 use crate::rays::Ray;
 use crate::textures::Texture;
 use crate::vec3;
-use crate::vec3::Vec3;
 use crate::vec3::{random_unit_vector, reflect, refract};
+use crate::vec3::{Point3, Vec3};
 
 pub struct Lambertian<T: Texture> {
     albedo: T,
@@ -23,6 +23,14 @@ pub struct Dielectric {
 pub struct ScatterRecord {
     pub attenuation: Color,
     pub scattered: Ray,
+}
+
+pub struct DiffuseLight<T: Texture> {
+    texture: T,
+}
+
+pub struct Isotropic<T: Texture> {
+    texture: T,
 }
 
 impl<T: Texture> Lambertian<T> {
@@ -109,6 +117,42 @@ impl Material for Dielectric {
     }
 }
 
+impl<T: Texture> DiffuseLight<T> {
+    pub fn new(texture: T) -> Self {
+        DiffuseLight { texture }
+    }
+}
+
+impl<T: Texture> Material for DiffuseLight<T> {
+    fn scatter(&self, _ray_in: &Ray, _rec: &HitRecord) -> Option<ScatterRecord> {
+        None
+    }
+    fn emmited(&self, p: &Point3, u: f64, v: f64) -> Color {
+        self.texture.value(u, v, p)
+    }
+}
+
+impl<T: Texture> Isotropic<T> {
+    pub fn new(texture: T) -> Self {
+        Isotropic { texture }
+    }
+}
+
+impl<T: Texture> Material for Isotropic<T> {
+    fn scatter(&self, ray_in: &Ray, rec: &HitRecord) -> Option<ScatterRecord> {
+        Some(ScatterRecord {
+            attenuation: self.texture.value(rec.u(), rec.v(), &rec.p()),
+            scattered: Ray::new(rec.p(), random_unit_vector(), ray_in.time()),
+        })
+    }
+    fn emmited(&self, _p: &Point3, _u: f64, _v: f64) -> Color {
+        Color::default()
+    }
+}
+
 pub trait Material: Send + Sync {
     fn scatter(&self, ray_in: &Ray, rec: &HitRecord) -> Option<ScatterRecord>;
+    fn emmited(&self, p: &Point3, u: f64, v: f64) -> Color {
+        Color::default()
+    }
 }

@@ -1,0 +1,25 @@
+* What is this about?
+
+This is my (bad) implementation in Rust of the series [[https://raytracing.github.io/books/RayTracingInOneWeekend.html][Ray Tracing in One Weekend]] and [[https://raytracing.github.io/books/RayTracingTheNextWeek.html][Ray Tracing: The next week]] by Shirley.
+A lot of things are translations from te C++ code to Rust, but I made some changes to try to make some more idiomatic. A lot of things aren't really yet, and the documentation is somewaht lacking, but I will try to update as I have time.
+A lot of inspiration was draw from Fralken [[https://github.com/fralken/ray-tracing-the-next-week][on his implemetation]] of the series, specially in the BVH department. Full credit to his code that I mimicked.
+
+* Perfomance
+The perfomance isn't the best. The final scene of the book, took, using multithrediang, about 100 minutes to render with 2500 samples per pixel and 50 as the max bouce depth. The results are bellow
+
+[[./scene.png]]
+
+* How to use
+To render a image, you can change the default scene in the =src/main.rs=, and to run you pass the following command
+
+#+begin_src sh :eval never
+cargo run -- image.png
+#+end_src
+
+Or whatever name you wnat it.
+
+* Bugs
+One thing that I coulnd't understand for the life of it was the perlin noise in the ground, it would only work in a quarter of the ground, the rest was just wrong.
+
+* Updates
+For the future, I expect to give it a more polished interface to select the scene and update de code for perfomance and to be more idiomatic. But for now, I need a rest.

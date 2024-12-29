@@ -1,6 +1,10 @@
 use std::{error::Error, fmt::Display};
 
-use crate::{interval::Interval, rays::Ray, vec3::Point3};
+use crate::{
+    interval::Interval,
+    rays::Ray,
+    vec3::{Point3, Vec3},
+};
 #[derive(Default, Clone, Copy, Debug, PartialOrd, PartialEq)]
 pub struct AABB {
     x: Interval,
@@ -66,9 +70,7 @@ impl AABB {
         match axis {
             0 => Ok(self.x),
             1 => Ok(self.y),
-            2 => {
-                Ok(self.z)
-            }
+            2 => Ok(self.z),
             _ => Err(AABBErrorKind::WrongAxis(axis)),
         }
     }
@@ -97,6 +99,30 @@ impl AABB {
     }
     pub fn max(&self) -> Point3 {
         Point3::new(self.x.max(), self.y.max(), self.z.max())
+    }
+    pub fn set_min(&mut self, offset: Vec3) {
+        self.x += offset.axis(0);
+        self.y += offset.axis(1);
+        self.z += offset.axis(2);
+    }
+
+    pub fn set_max(&mut self, offset: Vec3) {
+        self.x += offset.axis(0);
+        self.y += offset.axis(1);
+        self.z += offset.axis(2);
+    }
+    pub fn pad_to_minimum(&mut self, delta: f64) {
+        if self.x.size() < delta {
+            self.x.expand_inplace(delta)
+        };
+
+        if self.y.size() < delta {
+            self.y.expand_inplace(delta)
+        };
+
+        if self.z.size() < delta {
+            self.z.expand_inplace(delta)
+        };
     }
 }
 

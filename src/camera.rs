@@ -33,7 +33,7 @@ use std::cmp;
 /// - Focus distance: Distance of the focus plane
 /// - Defocus disk u: U vector of the defocus disk
 /// - Defocus disk v: V vector of the defocus disk
-///
+/// - Background: Color of the background of the scene
 #[derive(Default)]
 pub struct Camera {
     aspect_ratio: Option<f64>,
@@ -57,6 +57,7 @@ pub struct Camera {
     focus_distance: Option<f64>,
     defocus_disk_u: Vec3,
     defocus_disk_v: Vec3,
+    background: Option<Color>,
 }
 
 impl Camera {
@@ -71,6 +72,7 @@ impl Camera {
     /// - Image width: 800
     /// - Max depth: 50
     /// - Aspect ratio: 16:9
+    /// - Background: 0,0,0
     /// - Other values are calculated based on the previous values
     fn initialize(&mut self) {
         if self.vfov.is_none() {
@@ -108,6 +110,10 @@ impl Camera {
         if self.aspect_ratio.is_none() {
             eprintln!("No aspect ratio set, using default 16:9");
             self.aspect_ratio = Some(16.0 / 9.0);
+        }
+        if self.background.is_none() {
+            eprintln!("No background color set, using the default pure black");
+            self.background = Some(Color::default());
         }
 
         // Image
@@ -185,7 +191,7 @@ impl Camera {
                         let mut pixel_color = Color::default();
                         for _ in 0..self.samples_per_pixel {
                             let ray: Ray = self.get_ray(i, j);
-                            pixel_color += ray_color(&ray, world, self.max_depth.unwrap());
+                            pixel_color += self.ray_color(&ray, world, self.max_depth.unwrap());
                         }
                         pixel_color * self.pixel_sample_scale
                     })
@@ -262,6 +268,38 @@ impl Camera {
     }
     pub fn set_focus_distance(&mut self, distance: f64) {
         self.focus_distance = Some(distance);
+    }
+    pub fn set_background_color(&mut self, color: Color) {
+        self.background = Some(color);
+    }
+    /// Calculates the color of the ray. The color is calculated using the following steps:
+    /// - If the depth is less than or equal to 0, return the default color
+    /// - If the ray intersects with an object:
+    ///   - If the object scatters the ray, calculate the scattered ray and the attenuation
+    ///   - Return the attenuation multiplied by the color of the scattered ray
+    ///   - If the object does not scatter the ray, return the default color
+    ///   - If the ray does not intersect with an object, calculate the background color
+    ///   - Return the background color
+    pub fn ray_color(&self, ray: &Ray, world: &Box<dyn Hittable>, depth: i32) -> Color {
+        if depth <= 0 {
+            return Color::default();
+        }
+        // Hack for floating point inacuracies. If the hit is super close to the
+        // already intersected point, ignore it. Get rid of shadow acne
+        let time_interval = Interval::new(0.001, INFINITY);
+        if let Some(rec) = world.hit(ray, &time_interval) {
+            let color_from_emission =
+                rec.get_material()
+                    .unwrap()
+                    .emmited(&rec.p(), rec.u(), rec.v());
+            if let Some(scatter_rec) = rec.get_material().as_ref().unwrap().scatter(ray, &rec) {
+                return color_from_emission
+                    + scatter_rec.attenuation
+                        * self.ray_color(&scatter_rec.scattered, world, depth - 1);
+            }
+            return color_from_emission;
+        }
+        self.background.unwrap()
     }
 }
 /// Calculates the color of the ray. The color is calculated using the following steps:

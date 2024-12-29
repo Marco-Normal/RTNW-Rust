@@ -139,6 +139,22 @@ impl Vec3 {
     pub fn as_array(&self) -> [f64; 3] {
         [self.x, self.y, self.z]
     }
+    pub fn axis(&self, axis: usize) -> f64 {
+        match axis {
+            0 => self.x,
+            1 => self.y,
+            2 => self.z,
+            _ => panic!("No axis founded"),
+        }
+    }
+    pub fn set_axis(&mut self, axis: usize, value: f64) {
+        match axis {
+            0 => self.x = value,
+            1 => self.y = value,
+            2 => self.z = value,
+            _ => panic!("No axis founded"),
+        }
+    }
 }
 /// Returns a random vector with coordinates in the range [0, 1)
 pub fn random_unit_vector() -> Vec3 {
